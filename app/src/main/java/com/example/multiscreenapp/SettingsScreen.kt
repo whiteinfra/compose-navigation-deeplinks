@@ -1,27 +1,21 @@
 package com.example.multiscreenapp
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class SettingsViewModel : ViewModel() {
-    private val _username = MutableStateFlow("Guest")
+    private val _username = MutableStateFlow("Гість")
     val username: StateFlow<String> = _username
 
     fun updateUsername(newName: String) {
@@ -32,34 +26,61 @@ class SettingsViewModel : ViewModel() {
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    viewModel: SettingsViewModel = viewModel()
+    viewModel: SettingsViewModel
 ) {
     val username by viewModel.username.collectAsState()
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text("⚙ Settings Screen", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(16.dp))
-        UsernameInput(
-            username = username,
-            onUsernameChange = { viewModel.updateUsername(it) }
-        )
-        Spacer(Modifier.height(8.dp))
-        Text("Current username: $username")
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = { navController.popBackStack() }) {
-            Text("Back")
+
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "⚙️ Налаштування",
+                style = MaterialTheme.typography.headlineMedium
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Використовуємо TextField з розширеними налаштуваннями сумісності
+            OutlinedTextField(
+                value = username,
+                onValueChange = { 
+                    // Примусово оновлюємо значення без фільтрації
+                    viewModel.updateUsername(it) 
+                },
+                label = { Text("Ваше ім'я") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                singleLine = true
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Збережене ім'я:", style = MaterialTheme.typography.labelMedium)
+                    // Тут ми просто відображаємо те, що в стейті
+                    Text(text = username, style = MaterialTheme.typography.headlineSmall)
+                }
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            Button(onClick = { navController.popBackStack() }) {
+                Text("Повернутися додому")
+            }
         }
     }
-}
-
-@Composable
-fun UsernameInput(username: String, onUsernameChange: (String) -> Unit) {
-    TextField(
-        value = username,
-        onValueChange = onUsernameChange,
-        label = { Text("Enter your name") }
-    )
 }
